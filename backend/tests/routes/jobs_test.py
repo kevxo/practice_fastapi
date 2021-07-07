@@ -1,4 +1,5 @@
 import json
+from fastapi import status
 
 def test_create_job(client):
   data = {
@@ -87,3 +88,25 @@ def test_it_cannot_update_a_job(client):
   response = client.patch("/jobs/update/1", json.dumps(data))
   assert response.status_code == 404
   assert response.json()["detail"] == "Job with id 1 not found"
+
+def test_it_can_delete_a_job(client):
+  data = {
+    "title": "SDE super",
+    "company": "doogle",
+    "company_url": "www.doogle.com",
+    "location": "USA, NY",
+    "description": "python",
+    "data_posted": "2022-03-20"
+  }
+
+  client.post("/jobs/create-job/", json.dumps(data))
+
+  response = client.delete("/jobs/delete_job/1")
+  assert response.json()["msg"] == "Successfully deleted."
+
+  response = client.get("/jobs/get/1")
+  assert response.status_code == status.HTTP_404_NOT_FOUND
+
+def test_it_cannot_delete_a_job(client):
+  response = client.delete("/jobs/delete_job/1")
+  assert response.status_code == status.HTTP_404_NOT_FOUND
